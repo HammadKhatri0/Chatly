@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# environment — never commit real credentials
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+build/
+
+# user uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# logs and editor noise
+*.log
+npm-debug.log*
+.DS_Store
+.vscode/
+.idea/
