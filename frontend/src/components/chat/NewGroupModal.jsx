@@ -97,7 +97,7 @@ const NewGroupModal = ({ open, onClose }) => {
             type="file"
             accept="image/*"
             onChange={(event) => setAvatar(event.target.files?.[0] || null)}
-            className="block w-full text-sm text-ink-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-700"
+            className="block w-full text-sm text-ink-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-700 dark:file:text-brand-300"
           />
         </div>
 
@@ -114,7 +114,7 @@ const NewGroupModal = ({ open, onClose }) => {
                     onClick={() => toggle(candidate._id)}
                     className={clsx(
                       'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition',
-                      checked ? 'bg-brand-50' : 'hover:bg-ink-50'
+                      checked ? 'bg-brand-500/10' : 'hover:bg-ink-50'
                     )}
                   >
                     <Avatar src={candidate.avatar} name={candidate.name} size="sm" />

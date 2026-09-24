@@ -8,6 +8,7 @@ import Modal from '../components/ui/Modal.jsx';
 import { authApi, userApi } from '../api/index.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { fullStamp } from '../utils/format.js';
+import { useStaggerChildren } from '../hooks/useMotion.js';
 
 const FIELDS = [
   { key: 'name', label: 'Full name', placeholder: 'Jasmin Lowery' },
@@ -23,6 +24,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const fileRef = useRef(null);
+  const formRef = useStaggerChildren([], { stagger: 0.08, distance: 18 });
 
   const [form, setForm] = useState({});
   const [preview, setPreview] = useState(null);
@@ -80,7 +82,7 @@ const Profile = () => {
 
   return (
     <div className="h-full w-full overflow-y-auto bg-ink-50">
-      <header className="flex items-center gap-3 border-b border-ink-100 bg-white px-4 py-4">
+      <header className="glass sticky top-0 z-10 flex items-center gap-3 border-b px-4 py-4">
         <button
           type="button"
           onClick={() => navigate('/chats')}
@@ -95,14 +97,14 @@ const Profile = () => {
         </div>
       </header>
 
-      <form onSubmit={save} className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
+      <form ref={formRef} onSubmit={save} className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
         <section className="card flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-center">
           <div className="relative">
             <Avatar src={preview || user?.avatar} name={user?.name} size="xl" />
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="absolute -bottom-1 -right-1 rounded-full bg-brand-600 p-2 text-white shadow transition hover:bg-brand-700"
+              className="press absolute -bottom-1 -right-1 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 p-2 text-white shadow-lg shadow-brand-600/30 hover:brightness-110"
               aria-label="Change profile picture"
             >
               <Camera className="h-4 w-4" />
@@ -112,7 +114,7 @@ const Profile = () => {
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <h2 className="truncate text-xl font-semibold text-ink-900">{user?.name}</h2>
             <p className="truncate text-sm text-ink-400">{user?.email}</p>
-            <span className="mt-2 inline-block rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+            <span className="mt-2 inline-block rounded-lg bg-brand-500/10 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:text-brand-300">
               {user?.role}
             </span>
           </div>

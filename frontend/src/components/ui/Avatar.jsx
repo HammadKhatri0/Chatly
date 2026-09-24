@@ -15,14 +15,14 @@ const Avatar = ({ src, name = '', size = 'sm', online, className, ring = false }
       <img
         src={assetUrl(src)}
         alt={name}
-        className={clsx(SIZES[size], 'rounded-full object-cover', ring && 'ring-2 ring-white')}
+        className={clsx(SIZES[size], 'rounded-full object-cover', ring && 'ring-2 ring-panel')}
       />
     ) : (
       <span
         className={clsx(
           SIZES[size],
-          'flex items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-700',
-          ring && 'ring-2 ring-white'
+          'flex items-center justify-center rounded-full bg-gradient-to-br from-brand-500/30 to-brand-500/10 font-semibold text-brand-700 dark:text-brand-300',
+          ring && 'ring-2 ring-panel'
         )}
       >
         {initials(name) || '?'}
@@ -31,7 +31,7 @@ const Avatar = ({ src, name = '', size = 'sm', online, className, ring = false }
     {online !== undefined && (
       <span
         className={clsx(
-          'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white',
+          'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-panel',
           online ? 'bg-emerald-500' : 'bg-ink-400'
         )}
       />

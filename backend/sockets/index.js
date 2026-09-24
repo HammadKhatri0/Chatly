@@ -32,14 +32,12 @@ export const initSocket = (httpServer) => {
     }
   });
 
-  io.on('connection', async (socket) => {
+  io.on('connection', (socket) => {
     const { userId } = socket;
     socket.join(userRoom(userId));
 
-    const count = (onlineUsers.get(userId) || 0) + 1;
-    onlineUsers.set(userId, count);
-    if (count === 1) await setPresence(userId, true);
-
+    // Listeners are bound synchronously: awaiting anything first would silently
+    // drop events a client sends in the meantime.
     socket.on(SOCKET_EVENTS.TYPING, ({ conversationId, members = [], isTyping }) => {
       emitToUsers(
         members.filter((id) => String(id) !== String(userId)),
@@ -48,15 +46,19 @@ export const initSocket = (httpServer) => {
       );
     });
 
-    socket.on('disconnect', async () => {
+    socket.on('disconnect', () => {
       const left = (onlineUsers.get(userId) || 1) - 1;
       if (left <= 0) {
         onlineUsers.delete(userId);
-        await setPresence(userId, false);
+        setPresence(userId, false);
       } else {
         onlineUsers.set(userId, left);
       }
     });
+
+    const count = (onlineUsers.get(userId) || 0) + 1;
+    onlineUsers.set(userId, count);
+    if (count === 1) setPresence(userId, true);
   });
 
   setIO(io);

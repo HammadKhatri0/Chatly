@@ -1,5 +1,10 @@
 /** @type {import('tailwindcss').Config} */
+
+/** Neutrals and surfaces resolve through CSS variables so one `dark` class flips the whole theme. */
+const themed = (variable) => `rgb(var(${variable}) / <alpha-value>)`;
+
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
@@ -16,17 +21,20 @@ export default {
           800: '#4722ab',
           900: '#3c218a',
         },
+        // Neutral ramp: 50 is the page background, 900 the strongest text.
         ink: {
-          50: '#f6f7fb',
-          100: '#eceef6',
-          400: '#8b90a7',
-          600: '#4f546b',
-          800: '#252a3d',
-          900: '#171a29',
+          50: themed('--ink-50'),
+          100: themed('--ink-100'),
+          400: themed('--ink-400'),
+          600: themed('--ink-600'),
+          800: themed('--ink-800'),
+          900: themed('--ink-900'),
         },
+        // Raised surfaces (cards, sidebar, bubbles) sit above the page background.
+        panel: themed('--panel'),
       },
       boxShadow: {
-        card: '0 10px 30px -12px rgba(43, 25, 119, 0.18)',
+        card: '0 10px 30px -12px rgb(var(--shadow) / 0.45)',
       },
       keyframes: {
         'fade-in': { '0%': { opacity: 0, transform: 'translateY(4px)' }, '100%': { opacity: 1, transform: 'none' } },

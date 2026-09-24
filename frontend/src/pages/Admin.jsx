@@ -21,6 +21,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useChat } from '../context/ChatContext.jsx';
 import { fullStamp } from '../utils/format.js';
 import useDebouncedValue from '../hooks/useDebouncedValue.js';
+import { useCountUp, useStaggerChildren } from '../hooks/useMotion.js';
 
 const EMPTY_USER = {
   name: '',
@@ -35,12 +36,19 @@ const EMPTY_USER = {
   isBlocked: false,
 };
 
-const StatCard = ({ label, value }) => (
-  <div className="card p-4">
-    <p className="text-xs uppercase tracking-wide text-ink-400">{label}</p>
-    <p className="mt-1 text-2xl font-semibold text-ink-900">{value ?? '—'}</p>
-  </div>
-);
+const StatCard = ({ label, value }) => {
+  // Counts up from zero so a refreshed dashboard reads as live, not static.
+  const numberRef = useCountUp(value ?? 0);
+
+  return (
+    <div className="card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-card">
+      <p className="text-xs uppercase tracking-wide text-ink-400">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-ink-900">
+        {value === undefined || value === null ? '—' : <span ref={numberRef}>0</span>}
+      </p>
+    </div>
+  );
+};
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -59,6 +67,9 @@ const Admin = () => {
   const [form, setForm] = useState(EMPTY_USER);
   const [saving, setSaving] = useState(false);
   const debounced = useDebouncedValue(term, 350);
+  const statsRef = useStaggerChildren([stats], { stagger: 0.05 });
+  const rowsRef = useStaggerChildren([users], { selector: 'tr', stagger: 0.03 });
+  const chatsRef = useStaggerChildren([conversations], { stagger: 0.04 });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -160,7 +171,7 @@ const Admin = () => {
 
   return (
     <div className="h-full w-full overflow-y-auto bg-ink-50">
-      <header className="flex items-center gap-3 border-b border-ink-100 bg-white px-4 py-4">
+      <header className="glass sticky top-0 z-10 flex items-center gap-3 border-b px-4 py-4">
         <button
           type="button"
           onClick={() => navigate('/chats')}
@@ -169,7 +180,7 @@ const Admin = () => {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm shadow-brand-600/30">
           <Shield className="h-5 w-5" />
         </span>
         <div className="flex-1">
@@ -185,7 +196,7 @@ const Admin = () => {
       </header>
 
       <div className="space-y-5 p-4 sm:p-6">
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section ref={statsRef} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard label="Users" value={stats?.users} />
           <StatCard label="Online now" value={stats?.online} />
           <StatCard label="Group chats" value={stats?.groups} />
@@ -224,7 +235,7 @@ const Admin = () => {
                     <th className="px-4 py-3 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-ink-100">
+                <tbody ref={rowsRef} className="divide-y divide-ink-100">
                   {users.map((row) => (
                     <tr key={row._id} className="hover:bg-ink-50/60">
                       <td className="px-4 py-3">
@@ -244,13 +255,13 @@ const Admin = () => {
                         <span
                           className={clsx(
                             'rounded-lg px-2 py-1 text-xs font-semibold',
-                            row.role === 'admin' ? 'bg-brand-50 text-brand-700' : 'bg-ink-100 text-ink-600'
+                            row.role === 'admin' ? 'bg-brand-500/10 text-brand-700 dark:text-brand-300' : 'bg-ink-100 text-ink-600'
                           )}
                         >
                           {row.role}
                         </span>
                         {row.isBlocked && (
-                          <span className="ml-1 rounded-lg bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-600">
+                          <span className="ml-1 rounded-lg bg-rose-500/10 px-2 py-1 text-xs font-semibold text-rose-500">
                             blocked
                           </span>
                         )}
@@ -261,7 +272,7 @@ const Admin = () => {
                           <button
                             type="button"
                             onClick={() => message(row)}
-                            className="rounded-lg p-2 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                            className="rounded-lg p-2 text-ink-400 hover:bg-brand-500/10 hover:text-brand-600"
                             aria-label={`Message ${row.name}`}
                           >
                             <MessageSquare className="h-4 w-4" />
@@ -269,7 +280,7 @@ const Admin = () => {
                           <button
                             type="button"
                             onClick={() => openEditor(row)}
-                            className="rounded-lg p-2 text-ink-400 hover:bg-brand-50 hover:text-brand-600"
+                            className="rounded-lg p-2 text-ink-400 hover:bg-brand-500/10 hover:text-brand-600"
                             aria-label={`Edit ${row.name}`}
                           >
                             <Pencil className="h-4 w-4" />
@@ -278,7 +289,7 @@ const Admin = () => {
                             type="button"
                             onClick={() => remove(row)}
                             disabled={String(row._id) === String(me._id)}
-                            className="rounded-lg p-2 text-ink-400 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="rounded-lg p-2 text-ink-400 hover:bg-rose-500/10 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-40"
                             aria-label={`Delete ${row.name}`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -323,7 +334,7 @@ const Admin = () => {
               Admins can open and moderate any chat, including ones they are not part of.
             </p>
           </div>
-          <ul className="divide-y divide-ink-100">
+          <ul ref={chatsRef} className="divide-y divide-ink-100">
             {conversations.map((conversation) => (
               <li key={conversation._id} className="flex items-center gap-3 p-4">
                 <Avatar

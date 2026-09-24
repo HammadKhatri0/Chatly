@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Briefcase, GraduationCap, LogOut, Mail, MapPin, Phone, Trash2, UserPlus, X } from 'lucide-react';
@@ -9,6 +9,8 @@ import { conversationApi, userApi } from '../../api/index.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useChat } from '../../context/ChatContext.jsx';
 import { conversationAvatar, conversationTitle, otherMember } from '../../utils/format.js';
+import { useStaggerChildren } from '../../hooks/useMotion.js';
+import gsap, { DURATION, EASE, prefersReducedMotion } from '../../animations/motion.js';
 
 const Detail = ({ icon: Icon, label, value }) =>
   value ? (
@@ -26,9 +28,20 @@ const ConversationInfo = ({ conversation, onClose }) => {
   const { user, isAdmin } = useAuth();
   const { friends, removeConversation, upsertConversation } = useChat();
 
+  const panelRef = useRef(null);
+  const membersRef = useStaggerChildren([conversation.members.length], { stagger: 0.04 });
   const [peerProfile, setPeerProfile] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [picked, setPicked] = useState([]);
+
+  useEffect(() => {
+    if (!panelRef.current || prefersReducedMotion()) return;
+    gsap.fromTo(
+      panelRef.current,
+      { x: 32, opacity: 0 },
+      { x: 0, opacity: 1, duration: DURATION.base, ease: EASE.out, clearProps: 'transform' }
+    );
+  }, []);
 
   const title = conversationTitle(conversation, user?._id);
   const peer = otherMember(conversation, user?._id);
@@ -93,7 +106,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
   };
 
   return (
-    <aside className="absolute inset-0 z-20 w-full overflow-y-auto border-l border-ink-100 bg-white p-5 md:static md:z-auto md:w-80 md:shrink-0">
+    <aside ref={panelRef} className="absolute inset-0 z-20 w-full overflow-y-auto border-l border-ink-100 bg-panel p-5 md:static md:z-auto md:w-80 md:shrink-0">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-base font-semibold text-ink-900">
           {conversation.isGroup ? 'Group info' : 'Contact info'}
@@ -127,7 +140,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
       )}
 
       {conversation.isGroup && (
-        <div className="space-y-1">
+        <div ref={membersRef} className="space-y-1">
           <div className="flex items-center justify-between px-1 pb-1">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-400">Members</h3>
             {isGroupAdmin && (
@@ -147,7 +160,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
                 <p className="truncate text-xs text-ink-400">{member.email}</p>
               </div>
               {conversation.admins?.some((admin) => String(admin._id || admin) === String(member._id)) && (
-                <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
+                <span className="rounded-md bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-700 dark:text-brand-300">
                   admin
                 </span>
               )}
@@ -155,7 +168,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
                 <button
                   type="button"
                   onClick={() => removeMember(member._id)}
-                  className="rounded-lg p-1.5 text-ink-400 hover:bg-rose-50 hover:text-rose-600"
+                  className="rounded-lg p-1.5 text-ink-400 hover:bg-rose-500/10 hover:text-rose-500"
                   aria-label={`Remove ${member.name}`}
                 >
                   <X className="h-4 w-4" />

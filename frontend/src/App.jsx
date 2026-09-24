@@ -13,7 +13,14 @@ import Admin from './pages/Admin.jsx';
 
 const App = () => (
   <>
-    <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+    <Toaster
+      position="top-right"
+      toastOptions={{
+        duration: 3000,
+        className:
+          '!bg-panel !text-ink-800 !border !border-ink-100 !shadow-card !rounded-xl !text-sm',
+      }}
+    />
     <Routes>
       <Route
         path="/login"

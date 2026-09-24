@@ -1,6 +1,6 @@
 # Chatly — realtime chat app
 
-A full-stack chat application: **React + Vite + Tailwind** on the front end, **Express + MongoDB (MVC)** with **Socket.IO** on the back end.
+A full-stack chat application: **React + Vite + Tailwind + GSAP** on the front end, **Express + MongoDB (MVC)** with **Socket.IO** on the back end.
 
 ## Features
 
@@ -14,6 +14,8 @@ A full-stack chat application: **React + Vite + Tailwind** on the front end, **E
 - **Search** — by chat name and by message text, both from the sidebar (across every chat) and inside one conversation, with jump-to-message.
 - **Realtime** — new messages, presence (online / last seen), typing indicators and friend events over Socket.IO.
 - **Admin panel** — stats, every user's full profile, create / edit / delete users, change anyone's email, password, role or profile fields, block accounts, and open or moderate any conversation.
+- **Day / night mode** — a toggle in the sidebar (and on the sign-in screen) that follows your OS by default and remembers your choice.
+- **Motion** — GSAP drives the entrance staggers, message bubbles, sliding nav pill, typing dots, counting stat tiles and modals; everything collapses to a static end state under `prefers-reduced-motion`.
 - **Responsive** — one-pane layout on phones, two-pane from tablet up.
 
 ## Project structure
@@ -36,10 +38,11 @@ Chatapp/
     └── src/
         ├── api/         axios client and endpoint modules
         ├── components/  chat/, layout/, ui/
-        ├── context/     Auth, Socket and Chat providers
+        ├── context/     Auth, Theme, Socket and Chat providers
         ├── hooks/       debounce, voice recorder
         ├── pages/       Login, Register, Chat, Friends, Profile, Admin
-        └── utils/       formatting helpers
+        ├── utils/       formatting helpers
+        └── animations/  the GSAP motion vocabulary (durations, easings, presets)
 ```
 
 ## Getting started
@@ -57,7 +60,7 @@ mongo_uri=mongodb+srv://<user>:<pass>@cluster0.edckkfu.mongodb.net/chatapp?appNa
 PORT=5000
 JWT_SECRET = mysecretkey123456789
 JWT_EXPIRES_IN=7d
-CLIENT_URL=http://localhost:5173
+CLIENT_URL=http://localhost:5173,http://localhost:5174
 ADMIN_EMAIL=admin@gmail.com
 ADMIN_PASSWORD=admin123
 ADMIN_NAME=Administrator
@@ -109,6 +112,12 @@ Adds five demo users (`jasmin@`, `alex@`, `jacob@`, `osman@`, `jessie@` `example
 | PATCH · DELETE | `/api/conversations/:id/**` | Rename, members, mark read, delete |
 | GET · DELETE | `/api/messages/search?q=` · `/api/messages/:id` | Search, delete a message |
 | GET · POST · PATCH · DELETE | `/api/admin/**` | Stats, users CRUD, all conversations |
+
+## Theming and motion
+
+Colours resolve through CSS variables (`--ink-*`, `--panel`) declared in `src/index.css`, and Tailwind maps them onto the usual `ink-*` / `panel` utilities. Adding the `dark` class to `<html>` — which `ThemeContext` does — re-points those variables, so the whole app themes itself without `dark:` variants scattered through the markup.
+
+Animation timings live in `src/animations/motion.js` and are consumed through the hooks in `src/hooks/useMotion.js` (`useStaggerChildren`, `useEnter`, `usePopOnIncrease`, `useCountUp`, `useFloat`). Retune a duration or easing there and every screen follows.
 
 ## Security notes
 

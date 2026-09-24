@@ -10,6 +10,7 @@ import { friendApi, userApi } from '../api/index.js';
 
 import { useChat } from '../context/ChatContext.jsx';
 import useDebouncedValue from '../hooks/useDebouncedValue.js';
+import { useStaggerChildren } from '../hooks/useMotion.js';
 
 const TABS = [
   { key: 'friends', label: 'My friends' },
@@ -18,7 +19,7 @@ const TABS = [
 ];
 
 const PersonRow = ({ person, children }) => (
-  <div className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-3">
+  <div className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-panel p-3 transition duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card">
     <Avatar src={person.avatar} name={person.name} size="md" online={person.isOnline} />
     <div className="min-w-0 flex-1">
       <p className="truncate text-sm font-semibold text-ink-900">{person.name}</p>
@@ -89,9 +90,14 @@ const Friends = () => {
     );
   }, [friends, term, tab]);
 
+  const listRef = useStaggerChildren(
+    [tab, filteredFriends.length, results.length, requests.incoming.length],
+    { stagger: 0.04 }
+  );
+
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-ink-50">
-      <header className="flex items-center gap-3 border-b border-ink-100 bg-white px-4 py-4">
+      <header className="glass flex items-center gap-3 border-b px-4 py-4">
         <button
           type="button"
           onClick={() => navigate('/chats')}
@@ -115,8 +121,10 @@ const Friends = () => {
             type="button"
             onClick={() => setTab(item.key)}
             className={clsx(
-              'flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition',
-              tab === item.key ? 'bg-brand-600 text-white' : 'bg-white text-ink-600 hover:bg-ink-100'
+              'press flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium',
+              tab === item.key
+                ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm shadow-brand-600/25'
+                : 'bg-panel text-ink-600 hover:bg-ink-100'
             )}
           >
             {item.label}
@@ -135,7 +143,7 @@ const Friends = () => {
         </div>
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto px-4 pb-6">
+      <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-4 pb-6">
         {tab === 'friends' &&
           (filteredFriends.length ? (
             filteredFriends.map((friend) => (

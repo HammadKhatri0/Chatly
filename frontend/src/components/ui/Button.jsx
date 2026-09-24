@@ -2,11 +2,12 @@ import clsx from 'clsx';
 import { Loader2 } from 'lucide-react';
 
 const VARIANTS = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-300',
-  secondary: 'bg-brand-50 text-brand-700 hover:bg-brand-100',
+  primary:
+    'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm shadow-brand-600/25 hover:brightness-110 disabled:from-brand-300 disabled:to-brand-300',
+  secondary: 'bg-brand-500/10 text-brand-700 dark:text-brand-300 hover:bg-brand-500/20',
   ghost: 'bg-transparent text-ink-600 hover:bg-ink-100',
-  danger: 'bg-rose-50 text-rose-600 hover:bg-rose-100',
-  outline: 'border border-ink-100 bg-white text-ink-600 hover:border-brand-300 hover:text-brand-700',
+  danger: 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20',
+  outline: 'border border-ink-100 bg-panel text-ink-600 hover:border-brand-300 hover:text-brand-700 dark:hover:text-brand-300',
 };
 
 const SIZES = {
@@ -28,8 +29,9 @@ const Button = ({
     type="button"
     disabled={disabled || loading}
     className={clsx(
-      'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 disabled:cursor-not-allowed disabled:opacity-70',
+      'press inline-flex items-center justify-center gap-2 rounded-xl font-medium',
+      'focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30',
+      'disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100',
       VARIANTS[variant],
       SIZES[size],
       className
