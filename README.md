@@ -137,6 +137,30 @@ Colours resolve through CSS variables (`--ink-*`, `--panel`) declared in `src/in
 
 Animation timings live in `src/animations/motion.js` and are consumed through the hooks in `src/hooks/useMotion.js` (`useStaggerChildren`, `useEnter`, `usePopOnIncrease`, `useCountUp`, `useFloat`). Retune a duration or easing there and every screen follows.
 
+## Deploying
+
+The backend needs a normal long-lived Node process (Socket.IO holds open connections),
+so it goes on Render while the frontend goes on Vercel.
+
+**1. Backend on Render.** New -> Blueprint -> pick this repo. `render.yaml` supplies the root
+directory, build and start commands, health check and Node version; Render then prompts for the
+secrets (`mongo_uri`, `JWT_SECRET`, `ADMIN_PASSWORD`, the three `CLOUD_*` values and `CLIENT_URL`).
+Leave `CLIENT_URL` as a placeholder for now. In Atlas, allow `0.0.0.0/0` under Network Access —
+Render's free tier has no fixed outbound IP.
+
+**2. Frontend on Vercel.** Add New -> Project -> import the repo, and set **Root Directory to
+`frontend`**, since the repo root has no app of its own. Add `VITE_API_URL` pointing at the Render
+URL. `frontend/vercel.json` handles the SPA rewrites.
+
+**3. Close the loop.** Back in Render, set `CLIENT_URL` to the Vercel URL. Both CORS and the
+Socket.IO handshake read it, so until it is set the site loads but every request fails CORS.
+
+Both platforms redeploy on each push to `main`.
+
+Two things to expect on free tiers: Render sleeps after ~15 minutes idle, so the first request
+takes 30-60s and realtime is down while it sleeps; and `JWT_SECRET` plus the Atlas password should
+be real secrets in production, not the development values.
+
 ## Security notes
 
 - Passwords are bcrypt-hashed and never selected by default.

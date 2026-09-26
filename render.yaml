@@ -1,0 +1,49 @@
+# Render blueprint: New -> Blueprint -> pick this repo, and the API service is
+# created from this file. Values marked `sync: false` are never stored here;
+# Render prompts for them during setup and keeps them private.
+services:
+  - type: web
+    name: chatly-api
+    runtime: node
+    plan: free
+    # The repo holds two apps; the API is the one in backend/.
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    # Render withholds traffic from a deploy that cannot answer this.
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 20
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: MAX_UPLOAD_MB
+        value: 20
+      - key: ADMIN_EMAIL
+        value: admin@gmail.com
+      - key: ADMIN_NAME
+        value: Administrator
+      - key: CLOUD_FOLDER
+        value: chatly
+
+      # Secrets and per-deployment values: entered in the Render dashboard.
+      - key: mongo_uri
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Your Vercel URL, e.g. https://chatly.vercel.app — comma-separate to allow more.
+      # Both CORS and the Socket.IO handshake read this, so the app cannot talk to
+      # the API until it is set.
+      - key: CLIENT_URL
+        sync: false
+      - key: CLOUD_NAME
+        sync: false
+      - key: CLOUD_API_KEY
+        sync: false
+      - key: CLOUD_API_SECRET
+        sync: false
