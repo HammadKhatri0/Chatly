@@ -4,7 +4,7 @@ import Message from '../models/Message.js';
 import ApiError from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { getPagination, escapeRegex } from '../utils/pagination.js';
-import { fileUrl } from '../middleware/upload.js';
+import { storeFile, removeFile } from '../middleware/upload.js';
 import { MESSAGE_TYPES, SOCKET_EVENTS } from '../config/constants.js';
 import { emitToUsers } from '../sockets/registry.js';
 import { isAdmin } from '../middleware/auth.js';
@@ -51,9 +51,12 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   if (!text && !req.file) throw ApiError.badRequest('Message cannot be empty');
 
-  const attachment = req.file
+  const stored = await storeFile(req.file);
+  const attachment = stored
     ? {
-        url: fileUrl(req.file),
+        url: stored.url,
+        publicId: stored.publicId,
+        resourceType: stored.resourceType,
         name: req.file.originalname,
         mimeType: req.file.mimetype,
         size: req.file.size,
@@ -127,6 +130,8 @@ export const deleteMessage = asyncHandler(async (req, res) => {
 
   const conversation = await Conversation.findById(message.conversation);
   await message.deleteOne();
+  // Drop the stored file too, so deleted messages do not leave orphans behind.
+  await removeFile(message.attachment?.publicId, message.attachment?.resourceType);
 
   emitToUsers(conversation?.members || [], SOCKET_EVENTS.CONVERSATION_UPDATED, {
     conversationId: String(message.conversation),

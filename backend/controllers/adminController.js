@@ -5,7 +5,7 @@ import FriendRequest from '../models/FriendRequest.js';
 import ApiError from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { getPagination, escapeRegex } from '../utils/pagination.js';
-import { fileUrl } from '../middleware/upload.js';
+import { storeFile } from '../middleware/upload.js';
 import { ROLES } from '../config/constants.js';
 import { populateConversation } from '../utils/conversationHelpers.js';
 
@@ -92,7 +92,7 @@ export const updateUser = asyncHandler(async (req, res) => {
     if (req.body[field] !== undefined && req.body[field] !== '') user[field] = req.body[field];
   });
   if (req.body.isBlocked !== undefined) user.isBlocked = req.body.isBlocked === true || req.body.isBlocked === 'true';
-  if (req.file) user.avatar = fileUrl(req.file);
+  if (req.file) user.avatar = (await storeFile(req.file)).url;
 
   if (req.body.password) {
     if (String(req.body.password).length < 6) throw ApiError.badRequest('Password must be at least 6 characters');

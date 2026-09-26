@@ -3,7 +3,7 @@ import FriendRequest from '../models/FriendRequest.js';
 import ApiError from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { getPagination, escapeRegex } from '../utils/pagination.js';
-import { fileUrl } from '../middleware/upload.js';
+import { storeFile } from '../middleware/upload.js';
 import { REQUEST_STATUS } from '../config/constants.js';
 import { MEMBER_FIELDS } from '../utils/conversationHelpers.js';
 
@@ -19,7 +19,7 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
   EDITABLE_FIELDS.forEach((field) => {
     if (req.body[field] !== undefined) updates[field] = req.body[field];
   });
-  if (req.file) updates.avatar = fileUrl(req.file);
+  if (req.file) updates.avatar = (await storeFile(req.file)).url;
   if (!Object.keys(updates).length) throw ApiError.badRequest('Nothing to update');
 
   const user = await User.findByIdAndUpdate(req.user._id, updates, {

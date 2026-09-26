@@ -4,6 +4,8 @@ import { MESSAGE_TYPES } from '../config/constants.js';
 const attachmentSchema = new mongoose.Schema(
   {
     url: { type: String, required: true },
+    publicId: { type: String, default: '' },
+    resourceType: { type: String, default: '' },
     name: { type: String, default: '' },
     mimeType: { type: String, default: '' },
     size: { type: Number, default: 0 },

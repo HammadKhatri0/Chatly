@@ -7,7 +7,7 @@ A full-stack chat application: **React + Vite + Tailwind + GSAP** on the front e
 - **Auth & roles** — JWT login/register, two roles: `admin` (seeded) and `user` (default). Roles can never be self-assigned at registration.
 - **Profile** — name, email, address, work, studies, mobile, about and profile picture; fully editable, plus self-service password change.
 - **Friends** — search the whole directory, send / accept / reject / cancel requests, and unfriend. Everything updates live.
-- **Messaging** — text, emoji, files, images and recorded voice notes, to **anyone**, friend or not.
+- **Messaging** — text, emoji, files, images and recorded voice notes, to **anyone**, friend or not. Uploads go to Cloudinary when it is configured, and to local disk otherwise.
 - **Groups** — create a group from your friends, add or remove members, rename, leave or delete it.
 - **Inbox** — the sidebar holds the 10 most recent chats; everything older moves to the **Archive** inbox.
 - **Unread badges** — a numbered circle on the chat row and on the nav icon, like a notification count.
@@ -65,9 +65,27 @@ ADMIN_EMAIL=admin@gmail.com
 ADMIN_PASSWORD=admin123
 ADMIN_NAME=Administrator
 MAX_UPLOAD_MB=20
+
+# Cloudinary - leave blank to store uploads on local disk instead
+CLOUD_NAME=your-cloud-name
+CLOUD_API_KEY=your-api-key
+CLOUD_API_SECRET=your-api-secret
+CLOUD_FOLDER=chatly
 ```
 
 The admin account is seeded automatically on every boot (idempotent).
+
+### File storage
+
+With `CLOUD_NAME`, `CLOUD_API_KEY` and `CLOUD_API_SECRET` set, avatars, attachments and voice
+notes stream straight to Cloudinary and the database stores the absolute URL. Leave them blank and
+everything falls back to `backend/uploads/`, so a fresh clone runs without a Cloudinary account.
+
+Cloudinary is what makes the app deployable: hosts like Render give a web service an ephemeral
+filesystem, so anything written to `uploads/` disappears on the next restart or redeploy. Uploads
+use `resource_type: 'auto'`, which routes images, audio and raw documents to the right pipeline —
+voice notes land under Cloudinary's `video` type, which is expected. Deleting a message or a
+conversation also deletes its stored files.
 
 ### 2. Frontend
 
@@ -124,6 +142,6 @@ Animation timings live in `src/animations/motion.js` and are consumed through th
 - Passwords are bcrypt-hashed and never selected by default.
 - Every route below `/api` (except register/login) requires a bearer token; `/api/admin` additionally requires the admin role.
 - Conversation reads and writes are membership-checked; admins are the deliberate exception.
-- Uploads are type-filtered, randomly renamed and size-capped (`MAX_UPLOAD_MB`).
+- Uploads are type-filtered, randomly renamed and size-capped (`MAX_UPLOAD_MB`); Cloudinary credentials stay in the environment and never reach the client.
 - Login and registration are rate-limited; Helmet and a CORS allowlist are enabled.
 - The system always keeps at least one admin account.

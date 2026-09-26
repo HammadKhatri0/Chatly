@@ -26,4 +26,15 @@ export const env = {
   },
   maxUploadBytes: (Number(process.env.MAX_UPLOAD_MB) || 20) * 1024 * 1024,
   isProd: process.env.NODE_ENV === 'production',
+  cloudinary: {
+    cloudName: process.env.CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || '',
+    apiKey: process.env.CLOUD_API_KEY || process.env.CLOUDINARY_API_KEY || '',
+    apiSecret: process.env.CLOUD_API_SECRET || process.env.CLOUDINARY_API_SECRET || '',
+    folder: process.env.CLOUD_FOLDER || 'chatly',
+  },
 };
+
+/** Uploads go to Cloudinary when it is configured, and to local disk otherwise. */
+export const usingCloudinary = Boolean(
+  env.cloudinary.cloudName && env.cloudinary.apiKey && env.cloudinary.apiSecret
+);

@@ -5,7 +5,7 @@ import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { escapeRegex } from '../utils/pagination.js';
-import { fileUrl } from '../middleware/upload.js';
+import { storeFile, removeFile } from '../middleware/upload.js';
 import { INBOX_LIMIT, SOCKET_EVENTS } from '../config/constants.js';
 import { emitToUsers } from '../sockets/registry.js';
 import { isAdmin } from '../middleware/auth.js';
@@ -119,7 +119,7 @@ export const createGroup = asyncHandler(async (req, res) => {
   const conversation = await Conversation.create({
     isGroup: true,
     name: String(name).trim(),
-    avatar: req.file ? fileUrl(req.file) : '',
+    avatar: req.file ? (await storeFile(req.file)).url : '',
     members: [req.user._id, ...ids],
     admins: [req.user._id],
     createdBy: req.user._id,
@@ -144,7 +144,7 @@ export const updateGroup = asyncHandler(async (req, res) => {
   assertGroupAdmin(conversation, req.user);
 
   if (req.body.name) conversation.name = String(req.body.name).trim();
-  if (req.file) conversation.avatar = fileUrl(req.file);
+  if (req.file) conversation.avatar = (await storeFile(req.file)).url;
   await conversation.save();
 
   const populated = await populateConversation(Conversation.findById(conversation._id));
@@ -209,10 +209,19 @@ export const deleteConversation = asyncHandler(async (req, res) => {
   if (!owner && !isAdmin(req.user)) throw ApiError.forbidden('Only the owner or an admin can delete this');
 
   const members = conversation.members.map((m) => m._id);
+  // Collect attachments before the messages go, so their files can be cleaned up.
+  const attachments = await Message.find({
+    conversation: conversation._id,
+    'attachment.publicId': { $nin: [null, ''] },
+  }).select('attachment');
+
   await Promise.all([
     Message.deleteMany({ conversation: conversation._id }),
     Conversation.findByIdAndDelete(conversation._id),
   ]);
+  await Promise.all(
+    attachments.map((item) => removeFile(item.attachment.publicId, item.attachment.resourceType))
+  );
   emitToUsers(members, SOCKET_EVENTS.CONVERSATION_UPDATED, {
     conversationId: String(conversation._id),
     deleted: true,
