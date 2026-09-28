@@ -1,0 +1,16 @@
+# Keep the build context small and never bake secrets or local state into the image.
+**/node_modules
+**/.env
+**/.env.*
+!**/.env.example
+backend/uploads/*
+!backend/uploads/.gitkeep
+frontend
+dist
+build
+.git
+.github
+.claude
+*.log
+README.md
+render.yaml
