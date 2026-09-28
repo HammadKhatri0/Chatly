@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGSAP } from '@gsap/react';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Info, MessageSquare, Search, X } from 'lucide-react';
+import clsx from 'clsx';
+import { ArrowDown, ArrowLeft, Info, MessageSquare, Search, X } from 'lucide-react';
 import Avatar from '../ui/Avatar.jsx';
-import { EmptyState, Loading } from '../ui/Feedback.jsx';
+import { EmptyState, SkeletonThread } from '../ui/Feedback.jsx';
 import MessageBubble from './MessageBubble.jsx';
 import MessageComposer from './MessageComposer.jsx';
 import ConversationInfo from './ConversationInfo.jsx';
@@ -20,7 +21,7 @@ import {
   relativeStamp,
 } from '../../utils/format.js';
 import useDebouncedValue from '../../hooks/useDebouncedValue.js';
-import gsap, { DURATION, EASE, fadeUp, prefersReducedMotion } from '../../animations/motion.js';
+import gsap, { DURATION, EASE, fadeUp, skipMotion } from '../../animations/motion.js';
 
 /** Groups messages by calendar day so the thread can show date separators. */
 const groupByDay = (messages) =>
@@ -44,7 +45,10 @@ const ChatWindow = () => {
   const [term, setTerm] = useState('');
   const [hits, setHits] = useState([]);
   const [highlighted, setHighlighted] = useState(params.get('m'));
+  // Only shown once the reader has scrolled away from the newest message.
+  const [showJump, setShowJump] = useState(false);
   const bottomRef = useRef(null);
+  const threadRef = useRef(null);
   const headerRef = useRef(null);
   const searchPanelRef = useRef(null);
   const typingTimer = useRef(null);
@@ -67,7 +71,7 @@ const ChatWindow = () => {
 
   useGSAP(
     () => {
-      if (!searchOpen || !searchPanelRef.current || prefersReducedMotion()) return;
+      if (!searchOpen || !searchPanelRef.current || skipMotion()) return;
       gsap.fromTo(
         searchPanelRef.current,
         { height: 0, opacity: 0 },
@@ -80,6 +84,20 @@ const ChatWindow = () => {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: messages.length > 30 ? 'auto' : 'smooth' });
   }, [messages.length, conversation?._id, typingUserId]);
+
+  // Track how far the reader is from the newest message.
+  useEffect(() => {
+    const node = threadRef.current;
+    if (!node) return undefined;
+    const onScroll = () => {
+      const distance = node.scrollHeight - node.scrollTop - node.clientHeight;
+      // Half a screen away, with a floor so a short window still behaves.
+      setShowJump(distance > Math.max(160, node.clientHeight * 0.5));
+    };
+    onScroll();
+    node.addEventListener('scroll', onScroll, { passive: true });
+    return () => node.removeEventListener('scroll', onScroll);
+  }, [conversation?._id]);
 
   useEffect(() => {
     setSearchOpen(false);
@@ -157,7 +175,7 @@ const ChatWindow = () => {
           <button
             type="button"
             onClick={() => navigate('/chats')}
-            className="press rounded-xl p-2 text-ink-400 hover:bg-ink-50 md:hidden"
+            className="press rounded-xl p-2 text-ink-400 transition hover:bg-ink-100 hover:text-ink-800 md:hidden"
             aria-label="Back to inbox"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -185,7 +203,10 @@ const ChatWindow = () => {
           <button
             type="button"
             onClick={() => setSearchOpen((value) => !value)}
-            className="press rounded-xl p-2 text-ink-400 hover:bg-ink-50 hover:text-brand-600"
+            className={clsx(
+              'press rounded-xl p-2 transition hover:bg-brand-500/10 hover:text-brand-600',
+              searchOpen ? 'bg-brand-500/10 text-brand-600' : 'text-ink-400'
+            )}
             aria-label="Search in conversation"
           >
             <Search className="h-5 w-5" />
@@ -193,7 +214,10 @@ const ChatWindow = () => {
           <button
             type="button"
             onClick={() => setShowInfo((value) => !value)}
-            className="press rounded-xl p-2 text-ink-400 hover:bg-ink-50 hover:text-brand-600"
+            className={clsx(
+              'press rounded-xl p-2 transition hover:bg-brand-500/10 hover:text-brand-600',
+              showInfo ? 'bg-brand-500/10 text-brand-600' : 'text-ink-400'
+            )}
             aria-label="Conversation details"
           >
             <Info className="h-5 w-5" />
@@ -201,7 +225,7 @@ const ChatWindow = () => {
         </header>
 
         {searchOpen && (
-          <div ref={searchPanelRef} className="overflow-hidden border-b border-ink-100 bg-panel">
+          <div ref={searchPanelRef} className="overflow-hidden border-b border-line bg-panel">
             <div className="px-3 py-3 sm:px-5">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
@@ -250,14 +274,14 @@ const ChatWindow = () => {
           </div>
         )}
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-3 py-4 sm:px-6">
+        <div ref={threadRef} className="scroll-slim relative flex-1 space-y-4 overflow-y-auto px-3 py-4 sm:px-6">
           {loadingMessages ? (
-            <Loading label="Loading messages…" />
+            <SkeletonThread rows={6} />
           ) : messages.length ? (
             groups.map((group) => (
               <div key={group.label} className="space-y-2">
                 <div className="sticky top-2 z-[5] flex justify-center">
-                  <span className="rounded-full bg-panel/90 px-3 py-1 text-[11px] font-medium text-ink-400 shadow-sm ring-1 ring-ink-100/70 backdrop-blur">
+                  <span className="rounded-full bg-panel/85 px-3 py-1 text-[11px] font-medium tracking-wide text-ink-600 shadow-soft ring-1 ring-line backdrop-blur-md">
                     {group.label}
                   </span>
                 </div>
@@ -277,6 +301,7 @@ const ChatWindow = () => {
                       showAvatar={showAvatar}
                       highlighted={String(highlighted) === String(message._id)}
                       canDelete={mine || isAdmin}
+                      currentUserId={user?._id}
                       onDelete={removeMessage}
                     />
                   );
@@ -294,6 +319,20 @@ const ChatWindow = () => {
           {typingUserId && <TypingIndicator name={typingName} />}
           <div ref={bottomRef} />
         </div>
+
+        <button
+          type="button"
+          onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
+          className={clsx(
+            'press absolute bottom-24 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full',
+            'bg-panel text-brand-600 shadow-float ring-1 ring-line transition-all duration-300 dark:text-brand-300',
+            showJump ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
+          )}
+          aria-label="Jump to latest message"
+          aria-hidden={!showJump}
+        >
+          <ArrowDown className="h-5 w-5" />
+        </button>
 
         <MessageComposer
           conversation={conversation}

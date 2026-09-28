@@ -41,9 +41,14 @@ const StatCard = ({ label, value }) => {
   const numberRef = useCountUp(value ?? 0);
 
   return (
-    <div className="card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-card">
-      <p className="text-xs uppercase tracking-wide text-ink-400">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-ink-900">
+    <div className="card hover-lift group relative overflow-hidden p-4">
+      {/* Rail fills in on hover — the only motion a metric tile needs. */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 w-1 origin-top scale-y-0 bg-brand-gradient transition-transform duration-300 group-hover:scale-y-100"
+      />
+      <p className="text-xs uppercase tracking-wider text-ink-400">{label}</p>
+      <p className="mt-1 font-display text-2xl font-bold tabular-nums text-ink-900">
         {value === undefined || value === null ? '—' : <span ref={numberRef}>0</span>}
       </p>
     </div>
@@ -170,17 +175,17 @@ const Admin = () => {
   );
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-ink-50">
+    <div className="chat-canvas scroll-slim h-full w-full overflow-y-auto">
       <header className="glass sticky top-0 z-10 flex items-center gap-3 border-b px-4 py-4">
         <button
           type="button"
           onClick={() => navigate('/chats')}
-          className="rounded-xl p-2 text-ink-400 hover:bg-ink-50 md:hidden"
+          className="press rounded-xl p-2 text-ink-400 transition hover:bg-ink-100 hover:text-ink-800 md:hidden"
           aria-label="Back to inbox"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm shadow-brand-600/30">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-glow">
           <Shield className="h-5 w-5" />
         </span>
         <div className="flex-1">
@@ -208,7 +213,7 @@ const Admin = () => {
         </section>
 
         <section className="card overflow-hidden">
-          <div className="flex flex-wrap items-center gap-3 border-b border-ink-100 p-4">
+          <div className="flex flex-wrap items-center gap-3 border-b border-line p-4">
             <h2 className="text-sm font-semibold text-ink-900">All users</h2>
             <div className="relative ml-auto w-full sm:w-72">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
@@ -226,7 +231,7 @@ const Admin = () => {
           ) : users.length ? (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="bg-ink-50 text-xs uppercase tracking-wide text-ink-400">
+                <thead className="bg-raised text-xs uppercase tracking-wider text-ink-400">
                   <tr>
                     <th className="px-4 py-3 font-medium">User</th>
                     <th className="px-4 py-3 font-medium">Contact</th>
@@ -235,9 +240,9 @@ const Admin = () => {
                     <th className="px-4 py-3 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody ref={rowsRef} className="divide-y divide-ink-100">
+                <tbody ref={rowsRef} className="divide-y divide-line">
                   {users.map((row) => (
-                    <tr key={row._id} className="hover:bg-ink-50/60">
+                    <tr key={row._id} className="transition-colors hover:bg-brand-500/[0.04]">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <Avatar src={row.avatar} name={row.name} size="sm" online={row.isOnline} />
@@ -254,8 +259,10 @@ const Admin = () => {
                       <td className="px-4 py-3">
                         <span
                           className={clsx(
-                            'rounded-lg px-2 py-1 text-xs font-semibold',
-                            row.role === 'admin' ? 'bg-brand-500/10 text-brand-700 dark:text-brand-300' : 'bg-ink-100 text-ink-600'
+                            'rounded-full px-2 py-1 text-xs font-semibold capitalize ring-1 ring-inset',
+                            row.role === 'admin'
+                              ? 'bg-brand-500/10 text-brand-700 ring-brand-500/20 dark:text-brand-300'
+                              : 'bg-ink-100 text-ink-600 ring-transparent'
                           )}
                         >
                           {row.role}
@@ -272,7 +279,7 @@ const Admin = () => {
                           <button
                             type="button"
                             onClick={() => message(row)}
-                            className="rounded-lg p-2 text-ink-400 hover:bg-brand-500/10 hover:text-brand-600"
+                            className="press rounded-lg p-2 text-ink-400 transition hover:bg-brand-500/10 hover:text-brand-600"
                             aria-label={`Message ${row.name}`}
                           >
                             <MessageSquare className="h-4 w-4" />
@@ -280,7 +287,7 @@ const Admin = () => {
                           <button
                             type="button"
                             onClick={() => openEditor(row)}
-                            className="rounded-lg p-2 text-ink-400 hover:bg-brand-500/10 hover:text-brand-600"
+                            className="press rounded-lg p-2 text-ink-400 transition hover:bg-brand-500/10 hover:text-brand-600"
                             aria-label={`Edit ${row.name}`}
                           >
                             <Pencil className="h-4 w-4" />
@@ -306,7 +313,7 @@ const Admin = () => {
           )}
 
           {meta.pages > 1 && (
-            <div className="flex items-center justify-between border-t border-ink-100 p-4 text-sm">
+            <div className="flex items-center justify-between border-t border-line p-4 text-sm">
               <span className="text-ink-400">
                 Page {meta.page} of {meta.pages}
               </span>
@@ -328,7 +335,7 @@ const Admin = () => {
         </section>
 
         <section className="card overflow-hidden">
-          <div className="border-b border-ink-100 p-4">
+          <div className="border-b border-line p-4">
             <h2 className="text-sm font-semibold text-ink-900">Latest conversations</h2>
             <p className="text-xs text-ink-400">
               Admins can open and moderate any chat, including ones they are not part of.
@@ -429,7 +436,7 @@ const Admin = () => {
               type="checkbox"
               checked={Boolean(form.isBlocked)}
               onChange={(event) => setForm({ ...form, isBlocked: event.target.checked })}
-              className="h-4 w-4 rounded border-ink-100 text-brand-600 focus:ring-brand-300"
+              className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-300"
             />
             Block this account from signing in
           </label>

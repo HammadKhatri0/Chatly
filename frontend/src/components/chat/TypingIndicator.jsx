@@ -16,14 +16,18 @@ const TypingIndicator = ({ name }) => {
   return (
     <div ref={wrapRef} className="flex items-end gap-2">
       <span className="w-8 shrink-0" />
-      <div className="rounded-2xl rounded-bl-md border border-ink-100/70 bg-panel px-4 py-3 shadow-sm">
-        <div ref={dotsRef} className="flex items-center gap-1">
+      <div className="rounded-2xl rounded-bl-md border border-line bg-panel px-4 py-3 shadow-soft">
+        <div ref={dotsRef} className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
           <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-400" />
         </div>
       </div>
-      {name && <span className="pb-1 text-[11px] text-ink-400">{name} is typing</span>}
+      {name && (
+        <span className="pb-1 text-[11px] text-ink-400">
+          <span className="font-medium text-ink-600">{name}</span> is typing
+        </span>
+      )}
     </div>
   );
 };

@@ -103,7 +103,7 @@ const NewGroupModal = ({ open, onClose }) => {
 
         <div>
           <p className="label">Members ({selected.length} selected)</p>
-          <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-ink-100 p-2">
+          <div className="scroll-slim max-h-64 space-y-1 overflow-y-auto rounded-xl border border-line bg-raised p-2">
             {candidates.length ? (
               candidates.map((candidate) => {
                 const checked = selected.includes(candidate._id);
@@ -113,8 +113,10 @@ const NewGroupModal = ({ open, onClose }) => {
                     type="button"
                     onClick={() => toggle(candidate._id)}
                     className={clsx(
-                      'flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition',
-                      checked ? 'bg-brand-500/10' : 'hover:bg-ink-50'
+                      'press flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition duration-200',
+                      checked
+                        ? 'bg-brand-500/10 ring-1 ring-inset ring-brand-500/25'
+                        : 'hover:bg-ink-100/70'
                     )}
                   >
                     <Avatar src={candidate.avatar} name={candidate.name} size="sm" />
@@ -126,8 +128,10 @@ const NewGroupModal = ({ open, onClose }) => {
                     </span>
                     <span
                       className={clsx(
-                        'flex h-5 w-5 items-center justify-center rounded-md border',
-                        checked ? 'border-brand-600 bg-brand-600 text-white' : 'border-ink-100'
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all duration-200',
+                        checked
+                          ? 'scale-100 border-transparent bg-brand-gradient text-white shadow-glow'
+                          : 'border-line bg-panel'
                       )}
                     >
                       {checked && <Check className="h-3.5 w-3.5" />}

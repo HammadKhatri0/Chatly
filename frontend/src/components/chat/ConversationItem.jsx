@@ -22,15 +22,18 @@ const ConversationItem = ({ conversation, currentUserId, active, onSelect }) => 
       type="button"
       onClick={() => onSelect(conversation)}
       className={clsx(
-        'press relative flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left',
-        active ? 'bg-brand-500/10 ring-1 ring-brand-500/30' : 'hover:bg-ink-50'
+        'press group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-left',
+        'transition-all duration-200 ease-out',
+        active
+          ? 'bg-brand-500/10 ring-1 ring-inset ring-brand-500/25'
+          : 'hover:translate-x-0.5 hover:bg-ink-100/60'
       )}
     >
-      {/* Accent rail marks the open chat without shouting. */}
+      {/* Accent rail marks the open chat without shouting, and previews on hover. */}
       <span
         className={clsx(
-          'absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-brand-600 transition-opacity',
-          active ? 'opacity-100' : 'opacity-0'
+          'absolute left-0 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-brand-gradient transition-all duration-300',
+          active ? 'h-8 opacity-100' : 'h-4 opacity-0 group-hover:opacity-40'
         )}
       />
       <Avatar
@@ -43,15 +46,28 @@ const ConversationItem = ({ conversation, currentUserId, active, onSelect }) => 
         <span className="flex items-center justify-between gap-2">
           <span className="flex min-w-0 items-center gap-1.5">
             {conversation.isGroup && <Users className="h-3.5 w-3.5 shrink-0 text-ink-400" />}
-            <span className="truncate text-sm font-semibold text-ink-900">{title}</span>
+            <span
+              className={clsx(
+                'truncate text-sm transition-colors',
+                unread ? 'font-bold text-ink-900' : 'font-semibold text-ink-900',
+                active && 'text-brand-700 dark:text-brand-300'
+              )}
+            >
+              {title}
+            </span>
           </span>
-          <span className={clsx('shrink-0 text-[11px]', unread ? 'font-medium text-brand-600' : 'text-ink-400')}>
+          <span
+            className={clsx(
+              'shrink-0 text-[11px] tabular-nums',
+              unread ? 'font-semibold text-brand-600 dark:text-brand-300' : 'text-ink-400'
+            )}
+          >
             {relativeStamp(conversation.lastMessageAt)}
           </span>
         </span>
         <span className="mt-0.5 flex items-center justify-between gap-2">
           <span className={clsx('truncate text-xs', unread ? 'font-medium text-ink-800' : 'text-ink-400')}>
-            {fromMe && 'You: '}
+            {fromMe && <span className="text-ink-400">You: </span>}
             {messagePreview(last)}
           </span>
           <Badge count={unread} />

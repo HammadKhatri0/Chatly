@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import clsx from 'clsx';
 import { ArrowLeft, Camera, KeyRound, Save } from 'lucide-react';
 import Avatar from '../components/ui/Avatar.jsx';
 import Button from '../components/ui/Button.jsx';
@@ -81,12 +82,12 @@ const Profile = () => {
   };
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-ink-50">
+    <div className="chat-canvas scroll-slim h-full w-full overflow-y-auto">
       <header className="glass sticky top-0 z-10 flex items-center gap-3 border-b px-4 py-4">
         <button
           type="button"
           onClick={() => navigate('/chats')}
-          className="rounded-xl p-2 text-ink-400 hover:bg-ink-50 md:hidden"
+          className="press rounded-xl p-2 text-ink-400 transition hover:bg-ink-100 hover:text-ink-800 md:hidden"
           aria-label="Back to inbox"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -98,13 +99,19 @@ const Profile = () => {
       </header>
 
       <form ref={formRef} onSubmit={save} className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
-        <section className="card flex flex-col items-center gap-4 p-6 sm:flex-row sm:items-center">
+        <section className="card relative overflow-hidden p-6 pt-20 sm:pt-6">
+          {/* Cover band, echoing the brand panel on the sign-in screen. */}
+          <span
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 h-24 bg-brand-gradient sm:hidden"
+          />
+          <div className="relative flex flex-col items-center gap-4 sm:flex-row sm:items-center">
           <div className="relative">
             <Avatar src={preview || user?.avatar} name={user?.name} size="xl" />
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="press absolute -bottom-1 -right-1 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 p-2 text-white shadow-lg shadow-brand-600/30 hover:brightness-110"
+              className="press absolute -bottom-1 -right-1 rounded-full bg-brand-gradient p-2 text-white shadow-glow transition hover:scale-110 hover:brightness-110"
               aria-label="Change profile picture"
             >
               <Camera className="h-4 w-4" />
@@ -114,19 +121,27 @@ const Profile = () => {
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <h2 className="truncate text-xl font-semibold text-ink-900">{user?.name}</h2>
             <p className="truncate text-sm text-ink-400">{user?.email}</p>
-            <span className="mt-2 inline-block rounded-lg bg-brand-500/10 px-2.5 py-1 text-xs font-semibold text-brand-700 dark:text-brand-300">
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-brand-500/10 px-2.5 py-1 text-xs font-semibold capitalize text-brand-700 ring-1 ring-inset ring-brand-500/20 dark:text-brand-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
               {user?.role}
             </span>
           </div>
           <Button variant="outline" onClick={() => setPasswordOpen(true)}>
             <KeyRound className="h-4 w-4" /> Change password
           </Button>
+          </div>
         </section>
 
         <section className="card grid gap-4 p-6 sm:grid-cols-2">
           {FIELDS.map((field) => (
-            <div key={field.key} className={field.key === 'about' ? 'sm:col-span-2' : ''}>
-              <label className="label" htmlFor={field.key}>
+            <div
+              key={field.key}
+              className={clsx('group', field.key === 'about' && 'sm:col-span-2')}
+            >
+              <label
+                className="label transition-colors group-focus-within:text-brand-600 dark:group-focus-within:text-brand-300"
+                htmlFor={field.key}
+              >
                 {field.label}
               </label>
               <input

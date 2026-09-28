@@ -10,7 +10,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useChat } from '../../context/ChatContext.jsx';
 import { conversationAvatar, conversationTitle, otherMember } from '../../utils/format.js';
 import { useStaggerChildren } from '../../hooks/useMotion.js';
-import gsap, { DURATION, EASE, prefersReducedMotion } from '../../animations/motion.js';
+import gsap, { DURATION, EASE, skipMotion } from '../../animations/motion.js';
 
 const Detail = ({ icon: Icon, label, value }) =>
   value ? (
@@ -35,7 +35,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
   const [picked, setPicked] = useState([]);
 
   useEffect(() => {
-    if (!panelRef.current || prefersReducedMotion()) return;
+    if (!panelRef.current || skipMotion()) return;
     gsap.fromTo(
       panelRef.current,
       { x: 32, opacity: 0 },
@@ -106,7 +106,10 @@ const ConversationInfo = ({ conversation, onClose }) => {
   };
 
   return (
-    <aside ref={panelRef} className="absolute inset-0 z-20 w-full overflow-y-auto border-l border-ink-100 bg-panel p-5 md:static md:z-auto md:w-80 md:shrink-0">
+    <aside
+      ref={panelRef}
+      className="scroll-slim absolute inset-0 z-20 w-full overflow-y-auto border-l border-line bg-panel p-5 md:static md:z-auto md:w-80 md:shrink-0"
+    >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-base font-semibold text-ink-900">
           {conversation.isGroup ? 'Group info' : 'Contact info'}
@@ -114,23 +117,26 @@ const ConversationInfo = ({ conversation, onClose }) => {
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg p-1.5 text-ink-400 hover:bg-ink-100"
+          className="press rounded-lg p-1.5 text-ink-400 transition hover:rotate-90 hover:bg-ink-100 hover:text-ink-800"
           aria-label="Close panel"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="flex flex-col items-center gap-2 pb-4 text-center">
-        <Avatar src={conversationAvatar(conversation, user?._id)} name={title} size="xl" />
+      <div className="relative mb-4 flex flex-col items-center gap-2 overflow-hidden rounded-2xl border border-line bg-raised px-4 pb-4 pt-16 text-center">
+        <span aria-hidden="true" className="absolute inset-x-0 top-0 h-20 bg-brand-gradient" />
+        <span className="relative rounded-full ring-4 ring-panel">
+          <Avatar src={conversationAvatar(conversation, user?._id)} name={title} size="xl" />
+        </span>
         <p className="text-lg font-semibold text-ink-900">{title}</p>
-        <p className="text-xs text-ink-400">
+        <p className="break-all text-xs text-ink-400">
           {conversation.isGroup ? `${conversation.members.length} members` : peer?.email}
         </p>
       </div>
 
       {!conversation.isGroup && (
-        <div className="divide-y divide-ink-100 border-y border-ink-100">
+        <div className="divide-y divide-line rounded-2xl border border-line bg-raised px-2">
           <Detail icon={Mail} label="Email" value={peerProfile?.email || peer?.email} />
           <Detail icon={Phone} label="Mobile" value={peerProfile?.mobile} />
           <Detail icon={MapPin} label="Address" value={peerProfile?.address} />
@@ -142,7 +148,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
       {conversation.isGroup && (
         <div ref={membersRef} className="space-y-1">
           <div className="flex items-center justify-between px-1 pb-1">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-400">Members</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-400">Members</h3>
             {isGroupAdmin && (
               <Button size="sm" variant="secondary" onClick={() => setAddOpen(true)}>
                 <UserPlus className="h-3.5 w-3.5" /> Add
@@ -150,7 +156,10 @@ const ConversationInfo = ({ conversation, onClose }) => {
             )}
           </div>
           {conversation.members.map((member) => (
-            <div key={member._id} className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-ink-50">
+            <div
+              key={member._id}
+              className="group flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-ink-100/60"
+            >
               <Avatar src={member.avatar} name={member.name} size="sm" online={member.isOnline} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink-800">
@@ -160,7 +169,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
                 <p className="truncate text-xs text-ink-400">{member.email}</p>
               </div>
               {conversation.admins?.some((admin) => String(admin._id || admin) === String(member._id)) && (
-                <span className="rounded-md bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-700 dark:text-brand-300">
+                <span className="rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-700 ring-1 ring-inset ring-brand-500/20 dark:text-brand-300">
                   admin
                 </span>
               )}
@@ -168,7 +177,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
                 <button
                   type="button"
                   onClick={() => removeMember(member._id)}
-                  className="rounded-lg p-1.5 text-ink-400 hover:bg-rose-500/10 hover:text-rose-500"
+                  className="press rounded-lg p-1.5 text-ink-400 transition hover:bg-rose-500/10 hover:text-rose-500 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   aria-label={`Remove ${member.name}`}
                 >
                   <X className="h-4 w-4" />
@@ -225,7 +234,7 @@ const ConversationInfo = ({ conversation, onClose }) => {
                         : prev.filter((id) => id !== friend._id)
                     )
                   }
-                  className="h-4 w-4 rounded border-ink-100 text-brand-600 focus:ring-brand-300"
+                  className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-300"
                 />
                 <Avatar src={friend.avatar} name={friend.name} size="sm" />
                 <span className="min-w-0 flex-1 truncate text-sm text-ink-800">{friend.name}</span>

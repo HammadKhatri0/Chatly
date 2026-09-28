@@ -8,25 +8,29 @@
    * `ink-*` / `panel` utility in the app themes itself from these variables.
    */
   :root {
-    --ink-50: 246 247 251;
-    --ink-100: 236 238 246;
-    --ink-400: 139 144 167;
-    --ink-600: 79 84 107;
-    --ink-800: 37 42 61;
-    --ink-900: 23 26 41;
+    --ink-50: 244 245 250;
+    --ink-100: 230 232 242;
+    --ink-400: 132 138 162;
+    --ink-600: 76 82 106;
+    --ink-800: 33 38 58;
+    --ink-900: 18 21 36;
     --panel: 255 255 255;
+    --raised: 250 250 254;
+    --line: 226 229 241;
     --shadow: 43 25 119;
     color-scheme: light;
   }
 
   .dark {
-    --ink-50: 15 17 26;
-    --ink-100: 38 42 58;
-    --ink-400: 146 152 174;
-    --ink-600: 196 201 217;
-    --ink-800: 228 231 240;
+    --ink-50: 11 13 22;
+    --ink-100: 38 42 60;
+    --ink-400: 143 150 176;
+    --ink-600: 196 201 219;
+    --ink-800: 228 231 241;
     --ink-900: 247 248 252;
-    --panel: 23 26 38;
+    --panel: 22 25 38;
+    --raised: 30 34 50;
+    --line: 45 50 70;
     --shadow: 0 0 0;
     color-scheme: dark;
   }
@@ -39,56 +43,144 @@
 
   body {
     @apply bg-ink-50 text-ink-800 antialiased;
-    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: theme('fontFamily.sans');
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 20;
     transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+      background-color 0.35s ease,
+      color 0.35s ease;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: theme('fontFamily.display');
+    letter-spacing: -0.018em;
+  }
+
+  ::selection {
+    @apply bg-brand-500/25 text-ink-900;
+  }
+
+  /* One visible, consistent keyboard ring instead of the browser default. */
+  :focus-visible {
+    @apply outline-none ring-4 ring-brand-500/25;
   }
 }
 
 @layer components {
   .input {
-    @apply w-full rounded-xl border border-ink-100 bg-panel px-4 py-2.5 text-sm text-ink-800
+    @apply w-full rounded-xl border border-line bg-raised px-4 py-2.5 text-sm text-ink-800
       transition duration-200 placeholder:text-ink-400
-      focus:border-brand-400 focus:outline-none focus:ring-4 focus:ring-brand-500/20;
+      hover:border-ink-400/40
+      focus:border-brand-400 focus:bg-panel focus:outline-none focus:ring-4 focus:ring-brand-500/20;
   }
 
   .label {
     @apply mb-1.5 block text-sm font-medium text-ink-600;
   }
 
+  /*
+   * Cards are a hair lighter at the top than the bottom. It is barely perceptible
+   * on its own, but it is what stops a flat rectangle reading as a flat rectangle.
+   */
   .card {
-    @apply rounded-2xl border border-ink-100 bg-panel shadow-card;
+    @apply rounded-2xl border border-line bg-panel shadow-soft;
+    background-image: linear-gradient(180deg, rgb(var(--raised)) 0%, rgb(var(--panel)) 42%);
   }
 
   /* Frosted headers keep content readable while it scrolls underneath. */
   .glass {
-    @apply border-ink-100 bg-panel/80 backdrop-blur-xl;
+    @apply border-line bg-panel/70 backdrop-blur-xl backdrop-saturate-150;
   }
 
   .press {
     @apply transition duration-150 active:scale-[0.97];
   }
 
-  /* Soft dotted wallpaper behind the message thread, echoing the mockup. */
+  /* Cards and rows that invite a click rise slightly toward the cursor. */
+  .hover-lift {
+    @apply transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lift;
+  }
+
+  /*
+   * A light sweep crosses the element on hover. Used on primary buttons and the
+   * auth hero, where a static gradient otherwise looks printed on.
+   */
+  .sheen {
+    @apply relative overflow-hidden;
+  }
+  .sheen::after {
+    content: '';
+    @apply pointer-events-none absolute inset-0 -translate-x-full bg-brand-sheen opacity-0;
+    transition:
+      transform 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.2s ease;
+  }
+  .sheen:hover::after {
+    @apply translate-x-full opacity-100;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-br from-brand-500 via-brand-600 to-accent-500 bg-clip-text text-transparent;
+  }
+
+  /* Loading placeholder with a travelling highlight, used instead of a bare spinner. */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-ink-100;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background: linear-gradient(90deg, transparent, rgb(var(--panel) / 0.65), transparent);
+  }
+
+  /* Soft dotted wallpaper behind the message thread, with a warm brand wash on top. */
   .chat-canvas {
     background-color: rgb(var(--ink-50));
-    background-image: radial-gradient(rgb(var(--ink-100)) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-image:
+      radial-gradient(60rem 40rem at 85% -10%, rgb(117 81 251 / 0.07) 0%, transparent 60%),
+      radial-gradient(50rem 36rem at 0% 110%, rgb(6 182 212 / 0.06) 0%, transparent 60%),
+      radial-gradient(rgb(var(--ink-100)) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      100% 100%,
+      22px 22px;
   }
 
   .aurora {
     background:
-      radial-gradient(38rem 38rem at 12% 18%, theme('colors.brand.200') 0%, transparent 60%),
-      radial-gradient(32rem 32rem at 88% 22%, #c7d7ff 0%, transparent 62%),
-      radial-gradient(34rem 34rem at 62% 92%, #ffd9ef 0%, transparent 60%);
+      radial-gradient(38rem 38rem at 12% 18%, theme('colors.brand.300') 0%, transparent 60%),
+      radial-gradient(32rem 32rem at 88% 22%, theme('colors.accent.300') 0%, transparent 62%),
+      radial-gradient(34rem 34rem at 62% 92%, #ffc8e6 0%, transparent 60%);
   }
 
   .dark .aurora {
     background:
-      radial-gradient(38rem 38rem at 12% 18%, theme('colors.brand.800') 0%, transparent 60%),
-      radial-gradient(32rem 32rem at 88% 22%, #1e2a5a 0%, transparent 62%),
+      radial-gradient(38rem 38rem at 12% 18%, theme('colors.brand.700') 0%, transparent 60%),
+      radial-gradient(32rem 32rem at 88% 22%, #0e4c5e 0%, transparent 62%),
       radial-gradient(34rem 34rem at 62% 92%, #4a1f45 0%, transparent 60%);
+  }
+
+  /* Film grain over the aurora: hides gradient banding and adds a little texture. */
+  .grain::before {
+    content: '';
+    @apply pointer-events-none absolute inset-0 opacity-[0.16] mix-blend-overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Hairline grid used behind the auth hero panel. */
+  .grid-lines {
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  /* Scrollbars inside panels, so they do not cut a grey channel through the UI. */
+  .scroll-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--ink-100)) transparent;
   }
 }
 
@@ -101,7 +193,23 @@
 }
 ::-webkit-scrollbar-thumb {
   @apply rounded-full bg-ink-100;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-brand-400;
+  background-clip: padding-box;
+}
+
+/* Every decorative loop above is opt-in motion; honour the system setting. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-drift,
+  .animate-gradient-pan,
+  .animate-pulse-ring,
+  .animate-shimmer {
+    animation: none !important;
+  }
+  .sheen::after {
+    display: none;
+  }
 }

@@ -19,13 +19,16 @@ const TABS = [
 ];
 
 const PersonRow = ({ person, children }) => (
-  <div className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-panel p-3 transition duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card">
+  <div className="hover-lift group flex items-center gap-3 rounded-2xl border border-line bg-panel p-3 hover:border-brand-300/60">
     <Avatar src={person.avatar} name={person.name} size="md" online={person.isOnline} />
     <div className="min-w-0 flex-1">
       <p className="truncate text-sm font-semibold text-ink-900">{person.name}</p>
       <p className="truncate text-xs text-ink-400">{person.email}</p>
     </div>
-    <div className="flex shrink-0 flex-wrap justify-end gap-2">{children}</div>
+    {/* Actions stay out of the way until the row is hovered or focused. */}
+    <div className="flex shrink-0 flex-wrap justify-end gap-2 transition-opacity duration-200 sm:opacity-70 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+      {children}
+    </div>
   </div>
 );
 
@@ -96,12 +99,12 @@ const Friends = () => {
   );
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-ink-50">
-      <header className="glass flex items-center gap-3 border-b px-4 py-4">
+    <div className="chat-canvas flex h-full w-full flex-col overflow-hidden">
+      <header className="glass sticky top-0 z-10 flex items-center gap-3 border-b px-4 py-4">
         <button
           type="button"
           onClick={() => navigate('/chats')}
-          className="rounded-xl p-2 text-ink-400 hover:bg-ink-50 md:hidden"
+          className="press rounded-xl p-2 text-ink-400 transition hover:bg-ink-100 hover:text-ink-800 md:hidden"
           aria-label="Back to inbox"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -121,14 +124,17 @@ const Friends = () => {
             type="button"
             onClick={() => setTab(item.key)}
             className={clsx(
-              'press flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium',
+              'press flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-200',
               tab === item.key
-                ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm shadow-brand-600/25'
-                : 'bg-panel text-ink-600 hover:bg-ink-100'
+                ? 'bg-brand-gradient text-white shadow-glow'
+                : 'border border-line bg-panel text-ink-600 hover:-translate-y-px hover:border-brand-300 hover:text-brand-700 hover:shadow-soft dark:hover:text-brand-300'
             )}
           >
             {item.label}
-            {item.key === 'requests' && <Badge count={requests.incoming.length} className={clsx(tab === item.key && 'bg-white text-brand-700')} />}
+            {item.key === 'requests' && <Badge
+                count={requests.incoming.length}
+                className={clsx(tab === item.key && '!bg-white !bg-none !text-brand-700 !shadow-none !ring-0')}
+              />}
           </button>
         ))}
 
@@ -143,7 +149,7 @@ const Friends = () => {
         </div>
       </div>
 
-      <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-4 pb-6">
+      <div ref={listRef} className="scroll-slim flex-1 space-y-2 overflow-y-auto px-4 pb-6">
         {tab === 'friends' &&
           (filteredFriends.length ? (
             filteredFriends.map((friend) => (
@@ -193,7 +199,7 @@ const Friends = () => {
                   </PersonRow>
                 ))
               ) : (
-                <p className="rounded-2xl border border-dashed border-ink-100 p-5 text-center text-sm text-ink-400">
+                <p className="rounded-2xl border border-dashed border-line bg-panel/40 p-6 text-center text-sm text-ink-400">
                   No incoming requests.
                 </p>
               )}
@@ -216,7 +222,7 @@ const Friends = () => {
                   </PersonRow>
                 ))
               ) : (
-                <p className="rounded-2xl border border-dashed border-ink-100 p-5 text-center text-sm text-ink-400">
+                <p className="rounded-2xl border border-dashed border-line bg-panel/40 p-6 text-center text-sm text-ink-400">
                   No pending sent requests.
                 </p>
               )}

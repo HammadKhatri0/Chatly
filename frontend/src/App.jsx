@@ -15,10 +15,13 @@ const App = () => (
   <>
     <Toaster
       position="top-right"
+      gutter={10}
       toastOptions={{
         duration: 3000,
         className:
-          '!bg-panel !text-ink-800 !border !border-ink-100 !shadow-card !rounded-xl !text-sm',
+          '!bg-panel !text-ink-800 !border !border-line !shadow-float !rounded-2xl !text-sm !px-4 !py-3',
+        success: { iconTheme: { primary: '#10b981', secondary: 'white' } },
+        error: { iconTheme: { primary: '#f43f5e', secondary: 'white' } },
       }}
     />
     <Routes>

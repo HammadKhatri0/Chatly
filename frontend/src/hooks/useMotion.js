@@ -1,6 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { useGSAP } from '@gsap/react';
-import { countUp, fadeUp, float, popIn } from '../animations/motion.js';
+import {
+  countUp,
+  fadeUp,
+  float,
+  magnetic,
+  popIn,
+  revealOnScroll,
+  tilt,
+} from '../animations/motion.js';
 
 /**
  * Animates the direct children of a container whenever `deps` change.
@@ -67,6 +75,39 @@ export const useFloat = () => {
     const tween = float(ref.current);
     return () => tween?.kill();
   }, []);
+
+  return ref;
+};
+
+/** Attaches the magnetic cursor pull to whatever the ref lands on. */
+export const useMagnetic = (options) => {
+  const ref = useRef(null);
+
+  useEffect(() => magnetic(ref.current, options), []);
+
+  return ref;
+};
+
+/** 3D tilt toward the cursor, for cards with enough surface to carry it. */
+export const useTilt = (options) => {
+  const ref = useRef(null);
+
+  useEffect(() => tilt(ref.current, options), []);
+
+  return ref;
+};
+
+/**
+ * Fades children in as they scroll into view, rather than all at once on mount.
+ * Long lists only animate what the viewer actually reaches.
+ */
+export const useScrollReveal = (deps = [], { selector = ':scope > *' } = {}) => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const items = ref.current?.querySelectorAll(selector);
+    return revealOnScroll(items ? [...items] : [], ref.current);
+  }, deps);
 
   return ref;
 };
